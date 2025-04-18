@@ -19,35 +19,33 @@ pub fn create() -> Result<Arc<dyn Clipboard>> {
 
 #[cfg(feature = "system-clipboard")]
 mod system {
-    use crossclip::Clipboard;
-    use parking_lot::RwLock;
-    use std::sync::Arc;
+    use wl_clipboard_rs::{paste::{self, get_contents, ClipboardType, Seat}, copy::{self, Options, Source}};
+    use std::{sync::Arc, io::Read};
 
     use crate::error::Result;
 
     pub(crate) fn create() -> Result<Arc<dyn super::Clipboard>> {
-        Ok(SystemClipboard::new().map(std::sync::Arc::new)?)
+        Ok(Arc::new(SystemClipboard))
     }
 
-    struct SystemClipboard {
-        context: RwLock<crossclip::SystemClipboard>,
-    }
-
-    impl SystemClipboard {
-        fn new() -> Result<Self> {
-            let context = crossclip::SystemClipboard::new()?;
-            let context = RwLock::new(context);
-            Ok(Self { context })
-        }
-    }
+    struct SystemClipboard;
 
     impl super::Clipboard for SystemClipboard {
         fn get_contents(&self) -> Result<String> {
-            Ok(self.context.write().get_string_contents()?)
+            let result = get_contents(ClipboardType::Regular, Seat::Unspecified, paste::MimeType::Text);
+            Ok(match result {
+                Ok((mut pipe, _)) => {
+                    let mut contents = vec![];
+                    pipe.read_to_end(&mut contents).unwrap();
+                    String::from_utf8_lossy(&contents).to_string()
+                }
+                _ => {String::from("wa")}
+            })
         }
 
         fn set_contents(&self, contents: String) -> Result<()> {
-            self.context.write().set_string_contents(contents)?;
+            let opts = Options::new();
+            opts.copy(Source::Bytes(contents.into_bytes().into()), copy::MimeType::Autodetect).unwrap();
             Ok(())
         }
     }
