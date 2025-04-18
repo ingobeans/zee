@@ -1,3 +1,13 @@
+# ingobeans' zee fork
+
+fork of zee that uses wl-clipboard-rs for copy paste instead of crossclip.
+
+so this works with wl-clipboard!
+
+remember to install / build with the `system-clipboard` feature.
+
+install with: `cargo install --git https://github.com/ingobeans/zee.git --features system-clipboard`
+
 <p align="center">
   <img alt="Zi logo" src="https://user-images.githubusercontent.com/797170/76172978-08909000-6193-11ea-9ed3-4c40d3a4c74b.png">
 </p>
